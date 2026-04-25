@@ -6,38 +6,43 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-      <h1>T-Rex Jumping Game</h1>
-    </header>
 
-    <main>
-      <p>Score: <span id="score">0</span></p>
-      <p>Distance Travelled: <span id="distance">0 km</span></p>
-      <p>Time Survived: <span id="time">0 s</span></p>
-    </main>
+  <header>
+    <h1>T-Rex Jumping Game</h1>
+  </header>
 
-    <div id="game">
-      <div id="character"></div>
-      <div id="obstacle"></div>
+  <main>
+
+    <div id="stats">
+      <span id="score">Score: 0</span>
+      <span id="distance">Distance: 0m</span>
+      <span id="time">Time: 0s</span>
     </div>
 
-    <script src="index.js"></script>
+    <div id="game">
+
+      <!-- Game Over overlay -->
+      <div id="gameover">
+        <h2>Game Over!</h2>
+        <p id="finalscore">Your score: 0</p>
+        <button onclick="restartGame()">Play Again</button>
+      </div>
+
+      <div id="character"></div>
+
+    </div>
+
+    <!-- INSTRUCTIONS -->
+    <p id="instructions">Press <kbd>Space</kbd> to jump</p>
+
+  </main>
+
+  <footer>
+    <div class="footer__inner">
+      <span>© 2025 T-Rex Jumping Game</span>
+    </div>
+  </footer>
+
+  <script src="index.js"></script>
 </body>
 </html>
-
-<!--  
-// 1 - Title - T-Rex Jumping Game - DONE!
-// Displayed in the center of the game area - DONE!
------------------------------------------------------
-// 2 - Scoring Sytem 
-// Displayed in the top right corner of the game area
------------------------------------------------------
-// 3 - Sound Effects 1: Jumping sound
-// Played when the character jumps
------------------------------------------------------
-// 4 - Sound Effects 2: Game Over sound
-// Played when the character collides with an obstacle
------------------------------------------------------
-// 5 - Sound Effects 3: Sound Track sound
-// Played in the background during the game
--->

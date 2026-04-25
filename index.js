@@ -1,12 +1,36 @@
+// ── DOM REFERENCES ──
 const character = document.getElementById("character");
-const obstacle = document.getElementById("obstacle");
+const gameArea = document.getElementById("game");
+const scoreDisplay = document.getElementById("score");
+const distanceDisplay = document.getElementById("distance");
+const timeDisplay = document.getElementById("time");
+const gameOverScreen = document.getElementById("gameover");
+const finalScore = document.getElementById("finalscore");
 
-// Jump function
+// ── STATE VARIABLES ──
+let score = 0;
+let distance = 0;
+let time = 0;
+let gameRunning = true;
+let obstacleSpeed = 4;
+let frameCount = 0;
+let nextObstacleIn = 90; // frames until next obstacle spawns
+
+// ── ACTIVE OBSTACLES LIST ──
+let obstacles = [];
+
+// ── TIMER ──
+let timerInterval = setInterval(() => {
+    if (!gameRunning) return;
+    time++;
+    timeDisplay.innerText = `Time: ${time}s`;
+}, 1000);
+
+// ── JUMP FUNCTION ──
 document.addEventListener("keydown", function (event) {
   if (event.code === "Space") {
     if (!character.classList.contains("jump")) {
       character.classList.add("jump");
-
       setTimeout(() => {
         character.classList.remove("jump");
       }, 500);
@@ -14,41 +38,111 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-// Collision detection
-let checkCollision = setInterval(() => {
-  let charBottom = parseInt(window.getComputedStyle(character).getPropertyValue("bottom"));
-  let obstacleRight = parseInt(window.getComputedStyle(obstacle).getPropertyValue("right"));
-
-  if (obstacleRight > 500 && obstacleRight < 550 && charBottom < 40) {
-    alert("Game Over!");
-    obstacle.style.animation = "none";
-    obstacle.style.display = "none";
-  }
-}, 10);
-
-// Scoring System for the Jumping Game
-score = 0;
-scoreDisplay = document.getElementById("score");
-
-if (obstacleRight > charBottom) {
-    score++;
-    scoreDisplay.innerText = `Score: ${score}`;
+// ── CREATE OBSTACLE ──
+function spawnObstacle() {
+  const obs = document.createElement("div");
+  obs.classList.add("obstacle");
+  obs.style.left = gameArea.offsetWidth + "px";
+  gameArea.appendChild(obs);
+  obstacles.push(obs);
 }
 
-// Distance Travelled for the Jumping Game
-distance = 0;
-distanceDisplay = document.getElementById("distance");
+// ── GAME OVER ──
+function triggerGameOver() {
+  gameRunning = false;
+  clearInterval(timerInterval);
 
-if (obstacleRight > charBottom) {  
-    distance++;
-    distanceDisplay.innerText = `Distance: ${distance}m`;
+  // Remove all obstacles
+  obstacles.forEach(obs => obs.remove());
+  obstacles = [];
+
+  finalScore.innerText = `Your score: ${score}`;
+  gameOverScreen.style.display = "flex";
 }
 
-// Timer for the Jumping Game
-let time = 0;
-timeDisplay = document.getElementById("time");
+// ── RESTART ──
+function restartGame() {
+  score = 0;
+  distance = 0;
+  time = 0;
+  frameCount = 0;
+  nextObstacleIn = 90;
+  gameRunning = true;
+  obstacles = [];
 
-setInterval(() => {
+  scoreDisplay.innerText = "Score: 0";
+  distanceDisplay.innerText = "Distance: 0m";
+  timeDisplay.innerText = "Time: 0s";
+
+  gameOverScreen.style.display = "none";
+
+  timerInterval = setInterval(() => {
+    if (!gameRunning) return;
     time++;
     timeDisplay.innerText = `Time: ${time}s`;
-}, 1000);
+  }, 1000);
+
+  requestAnimationFrame(gameLoop);
+}
+
+// ── COLLISION CHECK ──
+function isColliding(obs) {
+  const charRect = character.getBoundingClientRect();
+  const obsRect = obs.getBoundingClientRect();
+
+  // Shrink the hitbox slightly for fairer collision feel
+  return (
+    charRect.right - 10 > obsRect.left + 5 &&
+    charRect.left + 10 < obsRect.right - 5 &&
+    charRect.bottom - 5 > obsRect.top + 5
+  );
+}
+
+// ── MAIN GAME LOOP ──
+function gameLoop() {
+  if (!gameRunning) return;
+
+  frameCount++;
+
+  // Spawn a new obstacle every `nextObstacleIn` frames
+  if (frameCount >= nextObstacleIn) {
+    spawnObstacle();
+    frameCount = 0;
+    // Randomise gap between obstacles — between 60 and 120 frames
+    nextObstacleIn = Math.floor(Math.random() * 60) + 60;
+  }
+
+  // Move each obstacle and check collision
+  obstacles.forEach((obs, index) => {
+    const currentLeft = parseInt(obs.style.left);
+    obs.style.left = (currentLeft - obstacleSpeed) + "px";
+
+    // Check collision
+    if (isColliding(obs)) {
+      triggerGameOver();
+      return;
+    }
+
+    // Obstacle passed the character — score a point
+    if (currentLeft < 50 && currentLeft > 40) {
+      score++;
+      distance++;
+      scoreDisplay.innerText = `Score: ${score}`;
+      distanceDisplay.innerText = `Distance: ${distance}m`;
+    }
+
+    // Remove obstacle once it goes off screen left
+    if (currentLeft < -20) {
+      obs.remove();
+      obstacles.splice(index, 1);
+    }
+  });
+
+  // Gradually increase speed over time
+  obstacleSpeed = 4 + Math.floor(score / 5);
+
+  requestAnimationFrame(gameLoop);
+}
+
+// ── START GAME ──
+requestAnimationFrame(gameLoop);
