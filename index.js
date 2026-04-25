@@ -101,18 +101,14 @@ function isColliding(obs) {
 // ── MAIN GAME LOOP ──
 function gameLoop() {
   if (!gameRunning) return;
-
   frameCount++;
 
-  // Spawn a new obstacle every `nextObstacleIn` frames
   if (frameCount >= nextObstacleIn) {
     spawnObstacle();
     frameCount = 0;
-    // Randomise gap between obstacles — between 60 and 120 frames
     nextObstacleIn = Math.floor(Math.random() * 60) + 60;
   }
 
-  // Move each obstacle and check collision
   obstacles.forEach((obs, index) => {
     const currentLeft = parseInt(obs.style.left);
     obs.style.left = (currentLeft - obstacleSpeed) + "px";
@@ -123,8 +119,9 @@ function gameLoop() {
       return;
     }
 
-    // Obstacle passed the character — score a point
-    if (currentLeft < 50 && currentLeft > 40) {
+    // Score a point only once per obstacle using a data attribute as a flag
+    if (currentLeft < 50 && currentLeft > 40 && !obs.dataset.scored) {
+      obs.dataset.scored = "true"; // mark this obstacle as already scored
       score++;
       distance++;
       scoreDisplay.innerText = `Score: ${score}`;
@@ -138,11 +135,8 @@ function gameLoop() {
     }
   });
 
-  // Gradually increase speed over time
   obstacleSpeed = 4 + Math.floor(score / 5);
-
   requestAnimationFrame(gameLoop);
 }
-
 // ── START GAME ──
 requestAnimationFrame(gameLoop);
